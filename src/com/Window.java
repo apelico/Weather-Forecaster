@@ -87,7 +87,7 @@ public class Window {
 		});
 		slider.setSnapToTicks(true);
 		slider.setValue(index);
-		slider.setMaximum(5);
+		slider.setMaximum(forecast.maxHours -1);
 		slider.setBounds(0, 435, 284, 26);
 		frame.getContentPane().add(slider);
 	}
@@ -100,26 +100,10 @@ public class Window {
 		windSpeed.setText(forecast.GetForecast(index).getWindSpeed() + "MPH");
 		precipProbability.setText(forecast.GetForecast(index).getPrecipProbability() + "%");
 		apparentTemperature.setText(forecast.GetForecast(index).getApparentTemperature() + "\u00B0");
-		switch(index)
-		{
-		case 1:
+		if(index == 0) {
 			hourly.setText("After 1 Hour");
-			break;
-		case 2:
-			hourly.setText("After 2 Hours");
-			break;
-		case 3:
-			hourly.setText("After 3 Hours");
-			break;
-		case 4:
-			hourly.setText("After 4 Hours");
-			break;
-		case 5:
-			hourly.setText("After 5 Hours");
-			break;
-		default:
-			hourly.setText("Current");
-			break;
+		}else {
+			hourly.setText("After " + index + " Hour");
 		}
 		frame.repaint();
 		frame.revalidate();
