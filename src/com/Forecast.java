@@ -5,11 +5,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class Forecast {
-	public final int maxHours = 13;
+	public final int maxHours = 22;
 	private ForecastData data[] = new ForecastData[maxHours];
 	
 	public Forecast()
@@ -42,20 +43,40 @@ public class Forecast {
 		in.close();
 
 		JsonObject myResponse = new JsonParser().parse(response.toString()).getAsJsonObject();
+		JsonArray hourly = myResponse.getAsJsonObject("hourly").getAsJsonArray("data").getAsJsonArray();
+		JsonArray daily = myResponse.getAsJsonObject("daily").getAsJsonArray("data").getAsJsonArray();
 		
-		for(int i = 0; i < maxHours; i++) {
-			JsonObject hourly = myResponse.getAsJsonObject("hourly").getAsJsonArray("data").get(i).getAsJsonObject();
+		for(int i = 0; i < 13; i++) {
+			JsonObject hourlyIndex = hourly.get(i).getAsJsonObject();
 			data[i] = new ForecastData();
-			data[i].setTemperature(hourly.get("temperature").getAsFloat());
-			data[i].setWindSpeed(hourly.get("windSpeed").getAsFloat());
-			data[i].setHumidity(hourly.get("humidity").getAsFloat());
-			data[i].setPrecipProbability(hourly.get("precipProbability").getAsFloat());
-			data[i].setSummary(hourly.get("summary").toString());
-			data[i].setApparentTemperature(hourly.get("apparentTemperature").getAsFloat());
-			data[i].setTemperatureHigh(myResponse.getAsJsonObject("daily").getAsJsonArray("data").get(0).getAsJsonObject().get("temperatureHigh").getAsFloat());
-			data[i].setTemperatureLow(myResponse.getAsJsonObject("daily").getAsJsonArray("data").get(0).getAsJsonObject().get("temperatureLow").getAsFloat());
-			System.out.println(myResponse.getAsJsonObject("hourly").getAsJsonArray("data").size());
+			data[i].setTemperature(hourlyIndex.get("temperature").getAsFloat());
+			data[i].setWindSpeed(hourlyIndex.get("windSpeed").getAsFloat());
+			data[i].setHumidity(hourlyIndex.get("humidity").getAsFloat());
+			data[i].setPrecipProbability(hourlyIndex.get("precipProbability").getAsFloat());
+			data[i].setSummary(hourlyIndex.get("summary").toString());
+			data[i].setApparentTemperature(hourlyIndex.get("apparentTemperature").getAsFloat());
+			data[i].setTime(hourlyIndex.get("time").getAsInt());
+			data[i].setTemperatureHigh(daily.get(0).getAsJsonObject().get("temperatureHigh").getAsFloat());
+			data[i].setTemperatureLow(daily.get(0).getAsJsonObject().get("temperatureLow").getAsFloat());
 		}
+		
+		for(int i = 0; i < 8; i++) {
+			JsonObject dailyIndex = daily.get(i).getAsJsonObject();
+			data[i + 12] = new ForecastData();
+			data[i + 12].setTemperature((dailyIndex.get("temperatureHigh").getAsFloat() + dailyIndex.get("temperatureLow").getAsFloat()) / 2);
+			data[i + 12].setWindSpeed(dailyIndex.get("windSpeed").getAsFloat());
+			data[i + 12].setHumidity(dailyIndex.get("humidity").getAsFloat());
+			data[i + 12].setPrecipProbability(dailyIndex.get("precipProbability").getAsFloat());
+			data[i + 12].setSummary(dailyIndex.get("summary").toString());
+			data[i + 12].setApparentTemperature((dailyIndex.get("apparentTemperatureHigh").getAsFloat() + dailyIndex.get("apparentTemperatureLow").getAsFloat()) / 2);
+			data[i + 12].setTime(dailyIndex.get("time").getAsInt());
+			data[i + 12].setTemperatureHigh(dailyIndex.get("temperatureHigh").getAsFloat());
+			data[i + 12].setTemperatureLow(dailyIndex.get("temperatureLow").getAsFloat());
+		}
+	}
+	
+	void GetData() {
+		
 	}
 	
 	public void RequestCity() throws Exception {
@@ -81,7 +102,7 @@ public class Forecast {
 		data[0].setCity(components.getAsJsonObject("components").get("city").toString());
 	}
 	
-	public ForecastData GetForecast(int index) {
+	public ForecastData GetHourlyForecast(int index) {
 		return data[index];
 	}
 }
